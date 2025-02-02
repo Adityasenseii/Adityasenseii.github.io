@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Valentine Adventure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            background: #ff9fb2;
+            font-family: 'Press Start 2P', cursive;
+            color: #8a1a3a;
+            min-height: 100vh;
+            overflow: hidden;
+            cursor: url('cursor.png'), auto !important;
+        }
+
+        .crt-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15) 0px,
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.9; }
+            50% { opacity: 1; }
+            100% { opacity: 0.9; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+
+        .page {
+            display: none;
+            padding: 20px;
+            text-align: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .active-page {
+            display: block;
+        }
+
+        h1 {
+            color: #ff0066;
+            text-shadow: 2px 2px 0 #fff;
+            margin: 30px 0;
+            font-size: 1.5rem;
+        }
+
+        .retro-btn {
+            background: #ff85a2;
+            border: 4px solid #8a1a3a;
+            padding: 15px 30px;
+            font-family: 'Press Start 2P', cursive;
+            color: #8a1a3a;
+            cursor: pointer;
+            margin: 20px;
+            display: none;
+        }
+
+        .heart {
+            font-size: 3rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin: 20px;
+            cursor: url('cursor.png'), auto;
+        }
+
+        .drop-zone {
+            width: 200px;
+            height: 200px;
+            border: 4px dashed #8a1a3a;
+            margin: 40px auto;
+            background: #ffb3c6;
+        }
+
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 80px);
+            gap: 0;
+            justify-content: center;
+            margin: 20px auto;
+            background: #ffb3c6;
+            padding: 10px;
+            border: 4px solid #8a1a3a;
+        }
+
+        .puzzle-tile {
+            width: 80px;
+            height: 80px;
+            background-size: 400px 400px;
+            border: 1px solid #8a1a3a;
+            cursor: grab;
+            transition: all 0.3s;
+        }
+
+        .puzzle-tile.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .secret-door-container {
+            width: 300px;
+            height: 200px;
+            position: relative;
+            margin: 20px auto;
+            perspective: 1000px;
+        }
+
+        .secret-door {
+            width: 200px;
+            height: 300px;
+            background: #ff85a2;
+            border: 4px solid #8a1a3a;
+            margin: 20px auto;
+            position: relative;
+            transition: transform 1s;
+            transform-origin: left;
+        }
+
+        #secretCodeInput {
+            border: 2px solid #000000;
+            background-color: #ff85a2;
+            color: #8a1a3a;
+            padding: 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            text-align: center;
+        }
+
+
+        .left-door {
+            left: 0;
+            transform-origin: left;
+        }
+
+        .right-door {
+            right: 0;
+            transform-origin: right;
+        }
+
+        .door-handle {
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background: #8a1a3a;
+            border-radius: 50%;
+        }
+
+        .left-door .door-handle {
+            right: 10px;
+        }
+
+        .right-door .door-handle {
+            left: 10px;
+        }
+
+        #page4 .retro-btn {
+            display: inline-block;
+        }
+
+        .checkbox-group {
+            position: relative;
+            margin: 50px auto;
+            height: 100px;
+        }
+
+        .heart-checkbox {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .heart-checkbox + label {
+            position: absolute;
+            cursor: pointer;
+            font-size: 2rem;
+            transition: all 0.3s;
+        }
+
+        .heart-checkbox + label::before {
+            content: '🤍';
+            display: inline-block;
+            font-size: 3rem;
+        }
+
+        .heart-checkbox:checked + label::before {
+            content: '❤️';
+        }
+
+        #noCheckboxLabel {
+            transition: all 0.1s;
+        }
+
+        #page5 .retro-btn {
+            display: inline-block;
+            font-size: 14px;
+            padding: 10px 20px;
+            margin: 10px;
+        }
+
+        #page5 #yesButton {
+            max-width: 300px;
+            max-height: 150px;
+            /*overflow: hidden;*/
+            white-space: normal;
+            text-overflow: ellipsis;
+            font-size: 14px;
+            padding: 10px 15px;
+            line-height: 1.2;
+           /* word-wrap: break-word;*/
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff0066;
+            animation: confetti-fall 2s linear;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="crt-effect"></div>
+
+    <!-- Page 1 -->
+    <div class="page active-page" id="page1">
+        <h1>LEVEL 1: HEART WARM-UP</h1>
+        <p>CLICK THE HEART 6 TIMES!</p>
+        <div class="heart" id="heartElement">❤️</div>   
+        <button class="retro-btn" onclick="nextPage()">CONTINUE</button>
+    </div>
+
+    <!-- Page 2 -->
+    <div class="page" id="page2">
+        <h1>LEVEL 2: HEART RESCUE</h1>
+        <p>DRAG THE HEART TO THE BOX!</p>
+        <div class="heart draggable" draggable="true">❤️</div>
+        <div class="drop-zone"></div>
+        <button class="retro-btn" onclick="nextPage()">CONTINUE</button>
+    </div>
+
+    <!-- Page 3 (Puzzle) -->
+    <div class="page" id="page3">
+        <h1>LEVEL 3: LOVE PUZZLE</h1>
+        <p>DRAG AND DROP THE PIECES TO SOLVE THE PUZZLE!</p>
+        <div class="puzzle-grid" id="puzzleGrid"></div>
+        <button class="retro-btn" onclick="nextPage()">CONTINUE</button>
+    </div>
+
+    <!-- Page 4 (Secret Door) -->
+    <div class="page" id="page4">
+        <h1>LEVEL 4: SECRET DOOR</h1>
+        <div class="secret-door" id="secretDoor">
+            <div class="door-handle"></div>
+        </div>
+        <div id="codeInputContainer">
+            <label for="secretCodeInput">ENTER THE SECRET CODE:</label>
+            <input type="text" id="secretCodeInput" class="retro-btn" placeholder="TYPE HERE" style="width: 200px; margin-top: 10px; display: block; margin: 10px auto;">
+            <button class="retro-btn" onclick="checkSecretCode()">OPEN</button>
+        </div>
+    </div>
+    
+
+    <!-- Page 5 (Final Question) -->
+    <div class="page" id="page5">
+        <div class="flex flex-col items-center p-4">
+            <img id="imageDisplay" src="image1.gif" alt="Valentine GIF" class="rounded-md h-[200px]" style="object-fit: cover; max-width: 100%;" />
+            <h2 id="valentineQuestion" class="text-2xl font-bold text-[#ff0066] my-4">Will you be my Valentine?</h2>
+            <div class="flex gap-4 pt-[20px] items-center" id="responseButtons">
+                <button id="yesButton" class="retro-btn bounce2">Yes</button>
+                <button id="noButton" class="retro-btn">No</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        let currentPage = 1;
+        let puzzlePieces = [];
+        const heartImage = 'vdimg.jpg'; 
+
+        // Initialize puzzle
+        function createPuzzle() {
+            puzzlePieces = Array.from({length: 25}, (_, i) => i);
+            shuffleArray(puzzlePieces);
+            renderPuzzle();
+            document.querySelector('#page3 .retro-btn[onclick="skipPuzzle()"]').style.display = 'inline-block';
+        }
+
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function renderPuzzle() {
+            const grid = document.getElementById('puzzleGrid');
+            grid.innerHTML = '';
+            puzzlePieces.forEach((piece, index) => {
+                const tile = document.createElement('div');
+                tile.className = 'puzzle-tile';
+                tile.draggable = true;
+                tile.dataset.piece = piece;
+                tile.dataset.currentPosition = index;
+                
+                const row = Math.floor(piece / 5);
+                const col = piece % 5;
+                tile.style.backgroundImage = `url(${heartImage})`;
+                tile.style.backgroundPosition = `-${col * 80}px -${row * 80}px`;
+                
+                tile.addEventListener('dragstart', handleDragStart);
+                tile.addEventListener('dragend', handleDragEnd);
+                tile.addEventListener('dragover', handleDragOver);
+                tile.addEventListener('drop', handleDrop);
+                
+                grid.appendChild(tile);
+            });
+        }
+
+        function handleDragStart(e) {
+            e.target.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', e.target.dataset.piece);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const draggedPieceIndex = parseInt(e.dataTransfer.getData('text/plain'));
+            const draggedElement = document.querySelector(`[data-piece="${draggedPieceIndex}"]`);
+            const dropTarget = e.target;
+            
+            if (dropTarget.classList.contains('puzzle-tile')) {
+                const dropPieceIndex = parseInt(dropTarget.dataset.piece);
+                
+                // Swap background positions
+                const draggedBg = draggedElement.style.backgroundPosition;
+                const draggedPiece = draggedElement.dataset.piece;
+                
+                draggedElement.style.backgroundPosition = dropTarget.style.backgroundPosition;
+                draggedElement.dataset.piece = dropTarget.dataset.piece;
+                
+                dropTarget.style.backgroundPosition = draggedBg;
+                dropTarget.dataset.piece = draggedPiece;
+                
+                checkPuzzleSolved();
+            }
+        }
+
+        function checkPuzzleSolved() {
+            const tiles = document.querySelectorAll('.puzzle-tile');
+            const solved = Array.from(tiles).every(tile => {
+                const currentPos = parseInt(tile.dataset.currentPosition);
+                const pieceNum = parseInt(tile.dataset.piece);
+                return currentPos === pieceNum;
+            });
+            
+            if (solved) {
+                // Add final animation effect
+                const tiles = document.querySelectorAll('.puzzle-tile');
+                tiles.forEach(tile => {
+                    tile.style.transition = 'transform 0.5s ease-in-out';
+                    tile.style.transform = 'scale(1.02)';
+                });
+                
+                setTimeout(() => {
+                    tiles.forEach(tile => {
+                        tile.style.transform = 'scale(1)';
+                    });
+                    
+                    setTimeout(() => {
+                        alert("YAYYY! PROUD OF YOU BABYGIRL");
+                        document.querySelector('#page3 .retro-btn').style.display = 'inline-block';
+                    }, 500);
+                }, 500);
+            }
+        }
+
+        // Page 1 logic
+        let clickCount = 0;
+        const heart = document.getElementById('heartElement');
+        const continueButton = document.querySelector('#page1 .retro-btn');
+
+        function handleHeartClick() {
+            clickCount++;
+            heart.style.transform = `scale(${1 + (clickCount * 0.2)})`; // Grow by 20% each click
+            if (clickCount >= 6) {
+                continueButton.style.display = 'inline-block';
+            }
+        }
+
+        heart.addEventListener('click', handleHeartClick);
+
+        // Initialize heart
+        heart.textContent = '❤️';
+        heart.style.fontSize = '3rem';
+        continueButton.style.display = 'none';
+
+
+        // Page 2 logic
+        document.addEventListener('dragstart', e => {
+            if (e.target.classList.contains('draggable')) {
+                e.dataTransfer.setData('text/plain', '❤️');
+            }
+        }); 
+
+        document.addEventListener('dragover', e => e.preventDefault());
+        document.addEventListener('drop', e => {
+            e.preventDefault();
+            if (e.target.classList.contains('drop-zone')) {
+                e.target.textContent = '❤️';
+                document.querySelector('#page2 .retro-btn').style.display = 'inline-block';
+            }
+        });
+
+
+        // Page 4 logic
+        // Add this event listener to handle Enter key press
+        document.getElementById('secretCodeInput').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                checkSecretCode();
+            }
+        });
+
+        function checkSecretCode() {
+            const input = document.getElementById('secretCodeInput');
+            const secretDoor = document.getElementById('secretDoor');
+            const codeInputContainer = document.getElementById('codeInputContainer');
+
+            if (input.value.toLowerCase() === 'i love you') {
+                // Animate the door opening
+                secretDoor.style.transform = 'perspective(1000px) rotateY(-90deg)';
+                
+                // Hide the input field and submit button
+                codeInputContainer.style.display = 'none';
+                
+                // Go to the next page after a short delay
+                setTimeout(() => {
+                    document.getElementById('page4').classList.remove('active-page');
+                    document.getElementById('page5').classList.add('active-page');
+                    initializePage5();
+                }, 1000); // 1 second delay to allow door animation to complete
+            } else {
+                alert("Wrong code bbg :( ");
+                input.value = ''; // Clear the input field
+            }
+        }
+
+        function initializePage5() {
+            document.getElementById('imageDisplay').src = imagePaths[0];
+            document.getElementById('yesButton').style.height = '48px';
+            document.getElementById('yesButton').style.width = '80px';
+            document.getElementById('yesButton').style.fontSize = '20px';
+            document.getElementById('noButton').textContent = 'No';
+            document.getElementById('noButton').style.position = 'static';
+            noClickCount = 0;
+        }
+
+
+        // Page 5 logic
+        let noClickCount = 0;
+        let buttonHeight = 36;
+        let buttonWidth = 60;
+        let fontSize = 14;
+        const imagePaths = [
+            "image1.gif",
+            "image2.gif",
+            "image3.gif",
+            "image4.gif",
+            "image5.gif",
+            "image6.gif",
+            "image7.gif"
+        ];
+
+        document.getElementById('noButton').addEventListener('click', function() {
+            if (noClickCount < 5) {
+                noClickCount++;
+                document.getElementById('imageDisplay').src = imagePaths[noClickCount];
+                buttonHeight = Math.min(buttonHeight + 5, 80);
+                buttonWidth = Math.min(buttonWidth + 5, 150);
+                fontSize = Math.min(fontSize + 1, 18);
+                document.getElementById('yesButton').style.height = `${buttonHeight}px`;
+                document.getElementById('yesButton').style.width = `${buttonWidth}px`;
+                document.getElementById('yesButton').style.fontSize = `${fontSize}px`;
+                if (noClickCount < 6) {
+                    this.textContent = ["No", "Are you sure?", "Pookie please", "Don't do this to me :(", "You're breaking my heart", "I'm gonna cry..."][noClickCount];
+                }
+                if (noClickCount === 5) {
+                    this.style.position = 'absolute';
+                    document.addEventListener('mousemove', moveNoButton);
+                }
+            }
+        });
+
+
+        // Add this to the existing Page 5 logic
+        document.getElementById('noButton').addEventListener('click', function() {
+            if (noClickCount < 5) {
+                noClickCount++;
+                document.getElementById('imageDisplay').src = imagePaths[noClickCount];
+                buttonHeight = Math.min(buttonHeight + 10, 100);
+                buttonWidth = Math.min(buttonWidth + 10, 200);
+                fontSize = Math.min(fontSize + 2, 24);
+                document.getElementById('yesButton').style.height = `${buttonHeight}px`;
+                document.getElementById('yesButton').style.width = `${buttonWidth}px`;
+                document.getElementById('yesButton').style.fontSize = `${fontSize}px`;
+                if (noClickCount < 6) {
+                    this.textContent = ["No", "Are you sure?", "Pookie please", "Don't do this to me :(", "You're breaking my heart", "I'm gonna cry..."][noClickCount];
+                }
+                if (noClickCount === 5) {
+                    this.style.position = 'absolute';
+                    document.addEventListener('mousemove', moveNoButton);
+                }
+            }
+        });
+
+
+
+        function moveNoButton(e) {
+            const noButton = document.getElementById('noButton');
+            const rect = noButton.getBoundingClientRect();
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            
+            if (Math.abs(mouseX - (rect.left + rect.width/2)) < 100 && Math.abs(mouseY - (rect.top + rect.height/2)) < 100) {
+                const newX = Math.random() * (window.innerWidth - rect.width);
+                const newY = Math.random() * (window.innerHeight - rect.height);
+                noButton.style.left = `${newX}px`;
+                noButton.style.top = `${newY}px`;
+            }
+        }
+
+        document.getElementById('yesButton').addEventListener('click', () => {
+            document.getElementById('imageDisplay').src = 'image7.gif';
+            document.getElementById('valentineQuestion').textContent = "Yayyy!! :3";
+            document.getElementById('responseButtons').style.display = 'none';
+            confetti();
+        });
+
+
+        // Celebration effect
+        document.getElementById('yesCheckbox').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = `${Math.random() * 100}%`;
+                    confetti.style.animationDelay = `${Math.random() * 2}s`;
+                    document.body.appendChild(confetti);
+                }
+                setTimeout(() => {
+                    alert("YESSS! 💖 YOU'RE MY VALENTINE! 💖");
+                }, 500);
+            }
+        });
+
+        function nextPage() {
+            document.getElementById(`page${currentPage}`).classList.remove('active-page');
+            currentPage++;
+            if (currentPage === 3) createPuzzle();
+            if (currentPage === 5) initializePage5();
+            document.getElementById(`page${currentPage}`).classList.add('active-page');
+        }
+
+        function initializePage5() {
+            document.getElementById('imageDisplay').src = imagePaths[0];
+            document.getElementById('yesButton').style.display = 'inline-block';
+            document.getElementById('noButton').style.display = 'inline-block';
+            document.getElementById('yesButton').style.height = '46px';
+            document.getElementById('yesButton').style.width = '90px';
+            document.getElementById('yesButton').style.fontSize = '14px';
+            document.getElementById('yesButton').textContent = 'Yes';
+            document.getElementById('noButton').textContent = 'No';
+            document.getElementById('noButton').style.position = 'static';
+            noClickCount = 0;
+            buttonHeight = 36;
+            buttonWidth = 60;
+            fontSize = 14;
+        }
+
+
+
+        // Initialize first page
+        document.querySelector('#page1 .retro-btn').style.display = 'none';
+    </script>
+</body>
+</html>

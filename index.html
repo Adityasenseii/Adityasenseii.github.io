@@ -307,7 +307,6 @@
             puzzlePieces = Array.from({length: 25}, (_, i) => i);
             shuffleArray(puzzlePieces);
             renderPuzzle();
-            document.querySelector('#page3 .retro-btn[onclick="skipPuzzle()"]').style.display = 'inline-block';
         }
 
 
@@ -514,7 +513,7 @@
                 document.getElementById('yesButton').style.width = `${buttonWidth}px`;
                 document.getElementById('yesButton').style.fontSize = `${fontSize}px`;
                 if (noClickCount < 6) {
-                    this.textContent = ["No", "Are you sure?", "Pookie please", "Don't do this to me :(", "You're breaking my heart", "I'm gonna cry..."][noClickCount];
+                    this.textContent = ["No", "Are you sure?", "really??", "REALLYY???", "You're breaking my heart", "I'm gonna cry."][noClickCount];
                 }
                 if (noClickCount === 5) {
                     this.style.position = 'absolute';
@@ -522,29 +521,6 @@
                 }
             }
         });
-
-
-        // Add this to the existing Page 5 logic
-        document.getElementById('noButton').addEventListener('click', function() {
-            if (noClickCount < 5) {
-                noClickCount++;
-                document.getElementById('imageDisplay').src = imagePaths[noClickCount];
-                buttonHeight = Math.min(buttonHeight + 10, 100);
-                buttonWidth = Math.min(buttonWidth + 10, 200);
-                fontSize = Math.min(fontSize + 2, 24);
-                document.getElementById('yesButton').style.height = `${buttonHeight}px`;
-                document.getElementById('yesButton').style.width = `${buttonWidth}px`;
-                document.getElementById('yesButton').style.fontSize = `${fontSize}px`;
-                if (noClickCount < 6) {
-                    this.textContent = ["No", "Are you sure?", "Pookie please", "Don't do this to me :(", "You're breaking my heart", "I'm gonna cry..."][noClickCount];
-                }
-                if (noClickCount === 5) {
-                    this.style.position = 'absolute';
-                    document.addEventListener('mousemove', moveNoButton);
-                }
-            }
-        });
-
 
 
         function moveNoButton(e) {
@@ -587,11 +563,19 @@
 
         function nextPage() {
             document.getElementById(`page${currentPage}`).classList.remove('active-page');
-            currentPage++;
-            if (currentPage === 3) createPuzzle();
+            
+            if (currentPage === 2) {
+                currentPage = 3; // Skip directly to puzzle page
+                createPuzzle();
+            } else {
+                currentPage++;
+            }
+
             if (currentPage === 5) initializePage5();
             document.getElementById(`page${currentPage}`).classList.add('active-page');
         }
+
+
 
         function initializePage5() {
             document.getElementById('imageDisplay').src = imagePaths[0];

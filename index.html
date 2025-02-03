@@ -39,12 +39,6 @@
             100% { opacity: 0.9; }
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-
         .page {
             display: none;
             padding: 20px;
@@ -54,7 +48,10 @@
         }
 
         .active-page {
-            display: block;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         h1 {
@@ -72,7 +69,28 @@
             color: #8a1a3a;
             cursor: pointer;
             margin: 20px;
+        }
+
+        #passwordInput {
+            background: #ff85a2;
+            border: 4px solid #8a1a3a;
+            padding: 15px;
+            font-family: 'Press Start 2P', cursive;
+            color: #8a1a3a;
+            margin-bottom: 20px;
+            width: 200px;
+            text-align: center;
+        }
+
+        .error-message {
+            color: #ff0066;
+            margin-top: 15px;
             display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .heart {
@@ -240,9 +258,98 @@
             0% { transform: translateY(-100vh) rotate(0deg); }
             100% { transform: translateY(100vh) rotate(360deg); }
         }
+
+        .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        }
+
+        .modal-wrapper {
+        position: relative;
+        width: 90%;
+        max-width: 800px;
+        }
+
+        .video-container {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        height: 0;
+        overflow: hidden;
+        border: 8px solid #8a1a3a;
+        background: #ffb3c6;
+        }
+
+        #authVideo {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        }
+
+        .close {
+        position: absolute;
+        top: -25px;
+        right: -25px;
+        z-index: 10000;
+        color: #8a1a3a;
+        font-size: 32px;
+        cursor: pointer;
+        background: #ff85a2;
+        border: 4px solid #8a1a3a;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        }
+
+        .modal-content {
+        position: relative;
+        background: #ffb3c6;
+        border: 8px solid #8a1a3a;
+        box-shadow: 0 0 20px rgba(138,26,58,0.3);
+        max-width: 640px;
+        max-height: 360px;
+        width: auto;
+        height: auto;
+        }
+
+        .close:hover {
+        background: #ff6b8b;
+        }
+
     </style>
 </head>
 <body>
+    <div id="loginPage" class="page active-page">
+        <h1>ENTER PASSWORD</h1>
+        <input type="password" id="passwordInput" placeholder="TYPE HERE">
+        <button class="retro-btn" onclick="checkPassword()">LOGIN</button>
+        <p class="error-message" id="errorMessage">INCORRECT PASSWORD</p>
+    </div>
+
+    <div id="videoModal" class="modal">
+        <div class="modal-wrapper">
+          <span class="close">&times;</span>
+          <div class="video-container">
+            <video id="authVideo" autoplay muted loop playsinline>
+              <source src="vid.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+    
     <div class="crt-effect"></div>
 
     <!-- Page 1 -->
@@ -593,10 +700,90 @@
             fontSize = 14;
         }
 
-
-
         // Initialize first page
         document.querySelector('#page1 .retro-btn').style.display = 'none';
+
+        function confetti() {
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = `${Math.random() * 100}%`;
+            confetti.style.animationDelay = `${Math.random() * 2}s`;
+            document.body.appendChild(confetti);
+        }
+    }
+
+    function checkPassword() {
+        const password = document.getElementById('passwordInput').value.toLowerCase();
+        const errorMessage = document.getElementById('errorMessage');
+        const video = document.getElementById('authVideo');
+
+        if (password === 'serena') {
+            const modal = document.getElementById('videoModal');
+            
+            // Reset video state
+            video.currentTime = 0;
+            video.muted = true; // Start muted to allow autoplay
+            video.play()
+            .then(() => {
+                modal.style.display = 'flex';
+                // Unmute after user interaction
+                video.addEventListener('click', () => video.muted = false);
+            })
+            .catch(error => {
+                console.error('Video playback failed:', error);
+                errorMessage.textContent = 'Video failed to load';
+                errorMessage.style.display = 'block';
+            });
+
+            // Close handler
+            const closeModal = () => {
+            modal.style.display = 'none';
+            video.pause();
+            video.currentTime = 0;
+            document.getElementById('loginPage').classList.remove('active-page');
+            document.getElementById('page1').classList.add('active-page');
+            };
+
+            document.querySelector('.close').onclick = closeModal;
+            modal.onclick = e => e.target === modal && closeModal();
+            video.onended = closeModal;
+
+        } else {
+            errorMessage.style.display = 'block';
+            setTimeout(() => errorMessage.style.display = 'none', 3000);
+        }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+        // Initialize modal and video
+        const video = document.getElementById('authVideo');
+        video.load(); // Preload video
+        
+        // Initialize password input listener
+        document.getElementById('passwordInput').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') checkPassword();
+        });
+        });
+
+        document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.getElementById('videoModal').style.display === 'flex') {
+            document.querySelector('.close').click();
+        }
+        });
+
+
+    // Allow login on Enter key press
+    document.getElementById('passwordInput').addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+            checkPassword();
+        }
+    });
+    // Initialize pages
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
+    document.getElementById('loginPage').classList.add('active-page');
+
     </script>
 </body>
 </html>
